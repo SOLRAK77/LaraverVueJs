@@ -43,9 +43,16 @@
                                 <button type="button" @click="abrirModal('categoria','actualizar',categoria)" class="btn btn-warning btn-sm">
                                   <i class="icon-pencil"></i>
                                 </button> &nbsp;
-                                <button type="button" class="btn btn-danger btn-sm">
-                                  <i class="icon-trash"></i>
-                                </button>
+                                <template v-if="categoria.condicion">
+                                    <button type="button" class="btn btn-danger btn-sm" @click="desactivarCategoria(categoria.id)">
+                                        <i class="icon-trash"></i>                                
+                                    </button>
+                                </template>
+                                <template v-else>
+                                    <button type="button" class="btn btn-info btn-sm" @click="activarCategoria(categoria.id)">
+                                        <i class="icon-check"></i>                                
+                                    </button>
+                                </template>
                             </td>
                             <td v-text="categoria.nombre"></td>
                             <td v-text="categoria.descripcion"></td>
@@ -108,7 +115,7 @@
                         <div class="form-group row">
                             <label class="col-md-3 form-control-label" for="email-input">Descripción</label>
                             <div class="col-md-9">
-                                <input type="email" v-model="descripcion" class="form-control" placeholder="Descripción de la categoria">
+                                <input type="text" v-model="descripcion" class="form-control" placeholder="Descripción de la categoria">
                             </div>
                         </div>
                         <div v-show="errorCategoria" class="form-group row div-error">
@@ -123,37 +130,14 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="cerrarModal()">Cerrar</button>
                     <button type="button" v-if="tipoAccion==1" @click="registrarCategoria()" class="btn btn-primary">Guardar</button>
-                    <button type="button" v-if="tipoAccion==2" class="btn btn-primary">Actualizar</button>
+                    <button type="button" v-if="tipoAccion==2" @click="actualizarCategoria()" class="btn btn-primary">Actualizar</button>
                 </div>
             </div>
             <!-- /.modal-content -->
         </div>
         <!-- /.modal-dialog -->
     </div>
-    <!--Fin del modal-->
-    <!-- Inicio del modal Eliminar -->
-    <div class="modal fade" id="modalEliminar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="display: none;" aria-hidden="true">
-        <div class="modal-dialog modal-danger" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">Eliminar Categoría</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                      <span aria-hidden="true">×</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Estas seguro de eliminar la categoría?</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                    <button type="button" class="btn btn-danger">Eliminar</button>
-                </div>
-            </div>
-            <!-- /.modal-content -->
-        </div>
-        <!-- /.modal-dialog -->
-    </div>
-    <!-- Fin del modal Eliminar -->    
+    <!--Fin del modal-->    
     </main>
 </template>
 
@@ -161,6 +145,7 @@
     export default {
         data(){
             return {
+            categoria_id : 0,
             nombre : '',
             descripcion : '',
             arrayCategoria : [],
@@ -209,6 +194,107 @@
                     console.log(error);
                 });
             },
+            actualizarCategoria(){
+                if (this.validaCategoria()){
+                    return;
+                }
+
+                let me = this;
+                axios.put('categoria/actualizar',{
+                    'nombre':this.nombre,
+                    'descripcion':this.descripcion,
+                    'id':this.categoria_id
+                }).then(function(response){
+                    me.cerrarModal();
+                    me.listarCategoria();
+                }).catch(function (error){
+                    //console.log(error);
+                });
+            },
+            desactivarCategoria(id){
+                const swalWithBootstrapButtons = swal.mixin({
+                confirmButtonClass: 'btn btn-success',
+                cancelButtonClass: 'btn btn-danger',
+                buttonsStyling: false,
+                })
+
+                swalWithBootstrapButtons({
+                title: 'Esta seguro de desactivar, esta categoria?',
+                text: "",
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Si!',
+                cancelButtonText: 'Cancelar!',
+                reverseButtons: true
+                }).then((result) => {
+                if (result.value) {                   
+                    let me = this;
+                    axios.put('categoria/desactivar',{
+                        'id':id
+                    }).then(function(response){
+                        swalWithBootstrapButtons(
+                        'Desactivado!',
+                        'El registro ha sido desactivado con éxito',
+                        'success'
+                        );
+                        me.listarCategoria();
+                    }).catch(function (error){
+                        //console.log(error);
+                    });                    
+                } else if (
+                    // Read more about handling dismissals
+                    result.dismiss === swal.DismissReason.cancel
+                ) {
+                    swalWithBootstrapButtons(
+                    'Cancelado',
+                    '',
+                    'error'
+                    )
+                }
+                })
+            },
+            activarCategoria(id){
+                const swalWithBootstrapButtons = swal.mixin({
+                confirmButtonClass: 'btn btn-success',
+                cancelButtonClass: 'btn btn-danger',
+                buttonsStyling: false,
+                })
+
+                swalWithBootstrapButtons({
+                title: 'Esta seguro de activar, esta categoria?',
+                text: "",
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Si!',
+                cancelButtonText: 'Cancelar!',
+                reverseButtons: true
+                }).then((result) => {
+                if (result.value) {                   
+                    let me = this;
+                    axios.put('categoria/activar',{
+                        'id':id
+                    }).then(function(response){
+                        swalWithBootstrapButtons(
+                        'Activado!',
+                        'El registro ha sido activado con éxito',
+                        'success'
+                        );
+                        me.listarCategoria();
+                    }).catch(function (error){
+                        //console.log(error);
+                    });                    
+                } else if (
+                    // Read more about handling dismissals
+                    result.dismiss === swal.DismissReason.cancel
+                ) {
+                    swalWithBootstrapButtons(
+                    'Cancelado',
+                    '',
+                    'error'
+                    )
+                }
+                })
+            },
             cerrarModal(){
                 this.modal =0;
                 this.tituloModal='';
@@ -232,6 +318,13 @@
                                 break;
                             }
                             case 'actualizar':{
+                                //console.log(data);
+                                this.modal=1;
+                                this.tituloModal = "Actualizar Cateogoria ";
+                                this.tipoAccion = 2;
+                                this.categoria_id = data["id"];
+                                this.nombre = data["nombre"];
+                                this.descripcion = data["descripcion"];
                                 break;
                             }
                         }
