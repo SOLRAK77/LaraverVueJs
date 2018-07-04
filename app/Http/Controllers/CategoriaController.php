@@ -17,6 +17,10 @@ class CategoriaController extends Controller
      */
     public function index(Request $request)
     {
+        $numPaginas=3;
+        $buscar = $request->buscar;
+        $criterio = $request->criterio;
+
         //if (!$request->ajax()) return redirect('/');
         ////ejemeplo con query_builder:
         ////Se importa la clase "use Illuminate\Support\Facades\DB"
@@ -25,7 +29,11 @@ class CategoriaController extends Controller
         ////
         ////ejemeplo con eloquent.ORM:        
         ////La libreria "use Illuminate\Support\Facades\DB" no se utiliza en eloquent
-        $categorias = Categoria::paginate(4);
+        if($buscar==''){
+            $categorias = Categoria::orderBy('id','desc')->paginate($numPaginas);
+        }else{
+            $categorias = Categoria::where($criterio,'like','%'.$buscar.'%')->paginate($numPaginas);
+        }
         //$categorias = Categoria::all();        
         //return $categorias;
         return [

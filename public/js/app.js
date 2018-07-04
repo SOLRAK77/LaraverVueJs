@@ -47891,9 +47891,10 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         }
     },
     methods: {
-        listarCategoria: function listarCategoria(page) {
+        listarCategoria: function listarCategoria(page, buscar, criterio) {
             var me = this;
-            var url = '/categoria?page=' + page;
+            var url = '/categoria?page=' + page + '&buscar=' + buscar + '&criterio=' + criterio;
+            console.log(url);
             axios.get(url).then(function (response) {
                 var respuesta = response.data;
                 me.arrayCategoria = respuesta.categorias.data;
@@ -47902,12 +47903,15 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 console.log(error);
             });
         },
-        cambiarPagina: function cambiarPagina(page) {
+        cambiarPagina: function cambiarPagina(page, buscar, criterio) {
+            console.log('pagina' + page);
+            console.log('buscar' + buscar);
+            console.log('criterio' + criterio);
             var me = this;
             //Actualiza la página actual
             me.pagination.current_page = page;
             //Envia la petición para visualizar la data de esa página
-            me.listarCategoria(page);
+            me.listarCategoria(page, buscar, criterio);
         },
         registrarCategoria: function registrarCategoria() {
             if (this.validarCategoria()) {
@@ -47921,7 +47925,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 'descripcion': this.descripcion
             }).then(function (response) {
                 me.cerrarModal();
-                me.listarCategoria();
+                me.listarCategoria(1, '', 'nombre');
             }).catch(function (error) {
                 console.log(error);
             });
@@ -47939,7 +47943,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 'id': this.categoria_id
             }).then(function (response) {
                 me.cerrarModal();
-                me.listarCategoria();
+                me.listarCategoria(1, '', 'nombre');
             }).catch(function (error) {
                 console.log(error);
             });
@@ -47966,7 +47970,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                     axios.put('/categoria/desactivar', {
                         'id': id
                     }).then(function (response) {
-                        me.listarCategoria();
+                        me.listarCategoria(1, '', 'nombre');
                         swal('Desactivado!', 'El registro ha sido desactivado con éxito.', 'success');
                     }).catch(function (error) {
                         console.log(error);
@@ -47998,7 +48002,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                     axios.put('/categoria/activar', {
                         'id': id
                     }).then(function (response) {
-                        me.listarCategoria();
+                        me.listarCategoria(1, '', 'nombre');
                         swal('Activado!', 'El registro ha sido activado con éxito.', 'success');
                     }).catch(function (error) {
                         console.log(error);
@@ -48057,7 +48061,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         }
     },
     mounted: function mounted() {
-        this.listarCategoria();
+        this.listarCategoria(1, this.buscar, this.criterio);
     }
 });
 
@@ -48151,6 +48155,15 @@ var render = function() {
                   attrs: { type: "text", placeholder: "Texto a buscar" },
                   domProps: { value: _vm.buscar },
                   on: {
+                    keyup: function($event) {
+                      if (
+                        !("button" in $event) &&
+                        _vm._k($event.keyCode, "enter", 13, $event.key, "Enter")
+                      ) {
+                        return null
+                      }
+                      _vm.listarCategoria(1, _vm.buscar, _vm.criterio)
+                    },
                     input: function($event) {
                       if ($event.target.composing) {
                         return
@@ -48160,7 +48173,19 @@ var render = function() {
                   }
                 }),
                 _vm._v(" "),
-                _vm._m(1)
+                _c(
+                  "button",
+                  {
+                    staticClass: "btn btn-primary",
+                    attrs: { type: "submit" },
+                    on: {
+                      click: function($event) {
+                        _vm.listarCategoria(1, _vm.buscar, _vm.criterio)
+                      }
+                    }
+                  },
+                  [_c("i", { staticClass: "fa fa-search" }), _vm._v(" Buscar")]
+                )
               ])
             ])
           ]),
@@ -48169,7 +48194,7 @@ var render = function() {
             "table",
             { staticClass: "table table-bordered table-striped table-sm" },
             [
-              _vm._m(2),
+              _vm._m(1),
               _vm._v(" "),
               _c(
                 "tbody",
@@ -48273,7 +48298,11 @@ var render = function() {
                           on: {
                             click: function($event) {
                               $event.preventDefault()
-                              _vm.cambiarPagina(_vm.pagination.current_page - 1)
+                              _vm.cambiarPagina(
+                                _vm.pagination.current_page - 1,
+                                _vm.buscar,
+                                _vm.criterio
+                              )
                             }
                           }
                         },
@@ -48298,7 +48327,7 @@ var render = function() {
                         on: {
                           click: function($event) {
                             $event.preventDefault()
-                            _vm.cambiarPagina(page)
+                            _vm.cambiarPagina(page, _vm.buscar, _vm.criterio)
                           }
                         }
                       })
@@ -48316,7 +48345,11 @@ var render = function() {
                           on: {
                             click: function($event) {
                               $event.preventDefault()
-                              _vm.cambiarPagina(_vm.pagination.current_page + 1)
+                              _vm.cambiarPagina(
+                                _vm.pagination.current_page + 1,
+                                _vm.buscar,
+                                _vm.criterio
+                              )
                             }
                           }
                         },
@@ -48565,16 +48598,6 @@ var staticRenderFns = [
       _vm._v(" "),
       _c("li", { staticClass: "breadcrumb-item active" }, [_vm._v("Dashboard")])
     ])
-  },
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c(
-      "button",
-      { staticClass: "btn btn-primary", attrs: { type: "submit" } },
-      [_c("i", { staticClass: "fa fa-search" }), _vm._v(" Buscar")]
-    )
   },
   function() {
     var _vm = this
