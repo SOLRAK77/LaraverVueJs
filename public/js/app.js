@@ -47236,7 +47236,7 @@ exports = module.exports = __webpack_require__(42)(false);
 
 
 // module
-exports.push([module.i, "\n.modal-content{\r\n    width: 100% !important;\r\n    position: absolute !important\n}\n.mostrar{\r\n    display: list-item !important;\r\n    opacity: 1 !important;\r\n    position: absolute !important;\r\n    background-color: #3c29297a !important;\n}\n.div-error{\r\n    display: flex;\r\n    justify-content: center;\n}\n.text-error{\r\n    color:red !important;\r\n    font-weight: bold;\n}\r\n", ""]);
+exports.push([module.i, "\n.modal-content{\n    width: 100% !important;\n    position: absolute !important;\n}\n.mostrar{\n    display: list-item !important;\n    opacity: 1 !important;\n    position: absolute !important;\n    background-color: #3c29297a !important;\n}\n.div-error{\n    display: flex;\n    justify-content: center;\n}\n.text-error{\n    color: red !important;\n    font-weight: bold;\n}\n", ""]);
 
 // exports
 
@@ -47835,13 +47835,6 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
-//
-//
-//
-//
-//
-//
-//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
     data: function data() {
@@ -47854,37 +47847,76 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             tituloModal: '',
             tipoAccion: 0,
             errorCategoria: 0,
-            errorMostrandoMsjCategoria: []
+            errorMostrarMsjCategoria: [],
+            pagination: {
+                'total': 0,
+                'current_page': 0,
+                'per_page': 0,
+                'last_page': 0,
+                'from': 0,
+                'to': 0
+            },
+            offset: 3,
+            criterio: 'nombre',
+            buscar: ''
         };
     },
 
+    computed: {
+        isActived: function isActived() {
+            return this.pagination.current_page;
+        },
+        //Calcula los elementos de la paginación
+        pagesNumber: function pagesNumber() {
+            if (!this.pagination.to) {
+                return [];
+            }
+
+            var from = this.pagination.current_page - this.offset;
+            if (from < 1) {
+                from = 1;
+            }
+
+            var to = from + this.offset * 2;
+            if (to >= this.pagination.last_page) {
+                to = this.pagination.last_page;
+            }
+
+            var pagesArray = [];
+            while (from <= to) {
+                pagesArray.push(from);
+                from++;
+            }
+            return pagesArray;
+        }
+    },
     methods: {
-        listarCategoria: function listarCategoria() {
+        listarCategoria: function listarCategoria(page) {
             var me = this;
-            // Make a request for a user with a given ID
-            axios.get('/categoria').then(function (response) {
-                me.arrayCategoria = response.data;
-                console.log(response);
+            var url = '/categoria?page=' + page;
+            axios.get(url).then(function (response) {
+                var respuesta = response.data;
+                me.arrayCategoria = respuesta.categorias.data;
+                me.pagination = respuesta.pagination;
             }).catch(function (error) {
                 console.log(error);
             });
         },
-        validaCategoria: function validaCategoria() {
-            this.errorCategoria = 0;
-            this.errorMostrandoMsjCategoria = [];
-
-            if (!this.nombre) this.errorMostrandoMsjCategoria.push('El nombre de la categoria no puede ser vacia');
-            if (this.errorMostrandoMsjCategoria.length) this.errorCategoria = 1;
-
-            return this.errorCategoria;
+        cambiarPagina: function cambiarPagina(page) {
+            var me = this;
+            //Actualiza la página actual
+            me.pagination.current_page = page;
+            //Envia la petición para visualizar la data de esa página
+            me.listarCategoria(page);
         },
         registrarCategoria: function registrarCategoria() {
-            if (this.validaCategoria()) {
+            if (this.validarCategoria()) {
                 return;
             }
 
             var me = this;
-            axios.post('categoria/registrar', {
+
+            axios.post('/categoria/registrar', {
                 'nombre': this.nombre,
                 'descripcion': this.descripcion
             }).then(function (response) {
@@ -47895,12 +47927,13 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             });
         },
         actualizarCategoria: function actualizarCategoria() {
-            if (this.validaCategoria()) {
+            if (this.validarCategoria()) {
                 return;
             }
 
             var me = this;
-            axios.put('categoria/actualizar', {
+
+            axios.put('/categoria/actualizar', {
                 'nombre': this.nombre,
                 'descripcion': this.descripcion,
                 'id': this.categoria_id
@@ -47908,86 +47941,88 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 me.cerrarModal();
                 me.listarCategoria();
             }).catch(function (error) {
-                //console.log(error);
+                console.log(error);
             });
         },
         desactivarCategoria: function desactivarCategoria(id) {
             var _this = this;
 
-            var swalWithBootstrapButtons = swal.mixin({
-                confirmButtonClass: 'btn btn-success',
-                cancelButtonClass: 'btn btn-danger',
-                buttonsStyling: false
-            });
-
-            swalWithBootstrapButtons({
-                title: 'Esta seguro de desactivar, esta categoria?',
-                text: "",
+            swal({
+                title: 'Esta seguro de desactivar esta categoría?',
                 type: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Si!',
-                cancelButtonText: 'Cancelar!',
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Aceptar!',
+                cancelButtonText: 'Cancelar',
+                confirmButtonClass: 'btn btn-success',
+                cancelButtonClass: 'btn btn-danger',
+                buttonsStyling: false,
                 reverseButtons: true
             }).then(function (result) {
                 if (result.value) {
                     var me = _this;
-                    axios.put('categoria/desactivar', {
+
+                    axios.put('/categoria/desactivar', {
                         'id': id
                     }).then(function (response) {
-                        swalWithBootstrapButtons('Desactivado!', 'El registro ha sido desactivado con éxito', 'success');
                         me.listarCategoria();
+                        swal('Desactivado!', 'El registro ha sido desactivado con éxito.', 'success');
                     }).catch(function (error) {
-                        //console.log(error);
+                        console.log(error);
                     });
                 } else if (
                 // Read more about handling dismissals
-                result.dismiss === swal.DismissReason.cancel) {
-                    swalWithBootstrapButtons('Cancelado', '', 'error');
-                }
+                result.dismiss === swal.DismissReason.cancel) {}
             });
         },
         activarCategoria: function activarCategoria(id) {
             var _this2 = this;
 
-            var swalWithBootstrapButtons = swal.mixin({
-                confirmButtonClass: 'btn btn-success',
-                cancelButtonClass: 'btn btn-danger',
-                buttonsStyling: false
-            });
-
-            swalWithBootstrapButtons({
-                title: 'Esta seguro de activar, esta categoria?',
-                text: "",
+            swal({
+                title: 'Esta seguro de activar esta categoría?',
                 type: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Si!',
-                cancelButtonText: 'Cancelar!',
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Aceptar!',
+                cancelButtonText: 'Cancelar',
+                confirmButtonClass: 'btn btn-success',
+                cancelButtonClass: 'btn btn-danger',
+                buttonsStyling: false,
                 reverseButtons: true
             }).then(function (result) {
                 if (result.value) {
                     var me = _this2;
-                    axios.put('categoria/activar', {
+
+                    axios.put('/categoria/activar', {
                         'id': id
                     }).then(function (response) {
-                        swalWithBootstrapButtons('Activado!', 'El registro ha sido activado con éxito', 'success');
                         me.listarCategoria();
+                        swal('Activado!', 'El registro ha sido activado con éxito.', 'success');
                     }).catch(function (error) {
-                        //console.log(error);
+                        console.log(error);
                     });
                 } else if (
                 // Read more about handling dismissals
-                result.dismiss === swal.DismissReason.cancel) {
-                    swalWithBootstrapButtons('Cancelado', '', 'error');
-                }
+                result.dismiss === swal.DismissReason.cancel) {}
             });
+        },
+        validarCategoria: function validarCategoria() {
+            this.errorCategoria = 0;
+            this.errorMostrarMsjCategoria = [];
+
+            if (!this.nombre) this.errorMostrarMsjCategoria.push("El nombre de la categoría no puede estar vacío.");
+
+            if (this.errorMostrarMsjCategoria.length) this.errorCategoria = 1;
+
+            return this.errorCategoria;
         },
         cerrarModal: function cerrarModal() {
             this.modal = 0;
             this.tituloModal = '';
             this.nombre = '';
             this.descripcion = '';
-            this.errorCategoria = 0;
-            this.errorMostrandoMsjCategoria = [];
         },
         abrirModal: function abrirModal(modelo, accion) {
             var data = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
@@ -47999,9 +48034,9 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                             case 'registrar':
                                 {
                                     this.modal = 1;
+                                    this.tituloModal = 'Registrar Categoría';
                                     this.nombre = '';
                                     this.descripcion = '';
-                                    this.tituloModal = 'Registrar Categoria';
                                     this.tipoAccion = 1;
                                     break;
                                 }
@@ -48009,22 +48044,20 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                                 {
                                     //console.log(data);
                                     this.modal = 1;
-                                    this.tituloModal = "Actualizar Cateogoria ";
+                                    this.tituloModal = 'Actualizar categoría';
                                     this.tipoAccion = 2;
-                                    this.categoria_id = data["id"];
-                                    this.nombre = data["nombre"];
-                                    this.descripcion = data["descripcion"];
+                                    this.categoria_id = data['id'];
+                                    this.nombre = data['nombre'];
+                                    this.descripcion = data['descripcion'];
                                     break;
                                 }
                         }
-                        break;
                     }
             }
         }
     },
     mounted: function mounted() {
         this.listarCategoria();
-        console.log('Component mounted.');
     }
 });
 
@@ -48043,7 +48076,7 @@ var render = function() {
       _c("div", { staticClass: "card" }, [
         _c("div", { staticClass: "card-header" }, [
           _c("i", { staticClass: "fa fa-align-justify" }),
-          _vm._v(" Categorías\n            "),
+          _vm._v(" Categorías\n                "),
           _c(
             "button",
             {
@@ -48057,13 +48090,80 @@ var render = function() {
             },
             [
               _c("i", { staticClass: "icon-plus" }),
-              _vm._v(" Nuevo\n            ")
+              _vm._v(" Nuevo\n                ")
             ]
           )
         ]),
         _vm._v(" "),
         _c("div", { staticClass: "card-body" }, [
-          _vm._m(1),
+          _c("div", { staticClass: "form-group row" }, [
+            _c("div", { staticClass: "col-md-6" }, [
+              _c("div", { staticClass: "input-group" }, [
+                _c(
+                  "select",
+                  {
+                    directives: [
+                      {
+                        name: "model",
+                        rawName: "v-model",
+                        value: _vm.criterio,
+                        expression: "criterio"
+                      }
+                    ],
+                    staticClass: "form-control col-md-3",
+                    on: {
+                      change: function($event) {
+                        var $$selectedVal = Array.prototype.filter
+                          .call($event.target.options, function(o) {
+                            return o.selected
+                          })
+                          .map(function(o) {
+                            var val = "_value" in o ? o._value : o.value
+                            return val
+                          })
+                        _vm.criterio = $event.target.multiple
+                          ? $$selectedVal
+                          : $$selectedVal[0]
+                      }
+                    }
+                  },
+                  [
+                    _c("option", { attrs: { value: "nombre" } }, [
+                      _vm._v("Nombre")
+                    ]),
+                    _vm._v(" "),
+                    _c("option", { attrs: { value: "descripcion" } }, [
+                      _vm._v("Descripción")
+                    ])
+                  ]
+                ),
+                _vm._v(" "),
+                _c("input", {
+                  directives: [
+                    {
+                      name: "model",
+                      rawName: "v-model",
+                      value: _vm.buscar,
+                      expression: "buscar"
+                    }
+                  ],
+                  staticClass: "form-control",
+                  attrs: { type: "text", placeholder: "Texto a buscar" },
+                  domProps: { value: _vm.buscar },
+                  on: {
+                    input: function($event) {
+                      if ($event.target.composing) {
+                        return
+                      }
+                      _vm.buscar = $event.target.value
+                    }
+                  }
+                }),
+                _vm._v(" "),
+                _vm._m(1)
+              ])
+            ])
+          ]),
           _vm._v(" "),
           _c(
             "table",
@@ -48095,7 +48195,7 @@ var render = function() {
                           },
                           [_c("i", { staticClass: "icon-pencil" })]
                         ),
-                        _vm._v("  \n                            "),
+                        _vm._v("  \n                                "),
                         categoria.condicion
                           ? [
                               _c(
@@ -48158,7 +48258,76 @@ var render = function() {
             ]
           ),
           _vm._v(" "),
-          _vm._m(3)
+          _c("nav", [
+            _c(
+              "ul",
+              { staticClass: "pagination" },
+              [
+                _vm.pagination.current_page > 1
+                  ? _c("li", { staticClass: "page-item" }, [
+                      _c(
+                        "a",
+                        {
+                          staticClass: "page-link",
+                          attrs: { href: "#" },
+                          on: {
+                            click: function($event) {
+                              $event.preventDefault()
+                              _vm.cambiarPagina(_vm.pagination.current_page - 1)
+                            }
+                          }
+                        },
+                        [_vm._v("Ant")]
+                      )
+                    ])
+                  : _vm._e(),
+                _vm._v(" "),
+                _vm._l(_vm.pagesNumber, function(page) {
+                  return _c(
+                    "li",
+                    {
+                      key: page,
+                      staticClass: "page-item",
+                      class: [page == _vm.isActived ? "active" : ""]
+                    },
+                    [
+                      _c("a", {
+                        staticClass: "page-link",
+                        attrs: { href: "#" },
+                        domProps: { textContent: _vm._s(page) },
+                        on: {
+                          click: function($event) {
+                            $event.preventDefault()
+                            _vm.cambiarPagina(page)
+                          }
+                        }
+                      })
+                    ]
+                  )
+                }),
+                _vm._v(" "),
+                _vm.pagination.current_page < _vm.pagination.last_page
+                  ? _c("li", { staticClass: "page-item" }, [
+                      _c(
+                        "a",
+                        {
+                          staticClass: "page-link",
+                          attrs: { href: "#" },
+                          on: {
+                            click: function($event) {
+                              $event.preventDefault()
+                              _vm.cambiarPagina(_vm.pagination.current_page + 1)
+                            }
+                          }
+                        },
+                        [_vm._v("Sig")]
+                      )
+                    ])
+                  : _vm._e()
+              ],
+              2
+            )
+          ])
         ])
       ])
     ]),
@@ -48282,8 +48451,8 @@ var render = function() {
                           ],
                           staticClass: "form-control",
                           attrs: {
-                            type: "text",
-                            placeholder: "Descripción de la categoria"
+                            type: "email",
+                            placeholder: "Ingrese descripción"
                           },
                           domProps: { value: _vm.descripcion },
                           on: {
@@ -48315,9 +48484,7 @@ var render = function() {
                         _c(
                           "div",
                           { staticClass: "text-center text-error" },
-                          _vm._l(_vm.errorMostrandoMsjCategoria, function(
-                            error
-                          ) {
+                          _vm._l(_vm.errorMostrarMsjCategoria, function(error) {
                             return _c("div", {
                               key: error,
                               domProps: { textContent: _vm._s(error) }
@@ -48335,7 +48502,7 @@ var render = function() {
                   "button",
                   {
                     staticClass: "btn btn-secondary",
-                    attrs: { type: "button", "data-dismiss": "modal" },
+                    attrs: { type: "button" },
                     on: {
                       click: function($event) {
                         _vm.cerrarModal()
@@ -48403,42 +48570,11 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "form-group row" }, [
-      _c("div", { staticClass: "col-md-6" }, [
-        _c("div", { staticClass: "input-group" }, [
-          _c(
-            "select",
-            {
-              staticClass: "form-control col-md-3",
-              attrs: { id: "opcion", name: "opcion" }
-            },
-            [
-              _c("option", { attrs: { value: "nombre" } }, [_vm._v("Nombre")]),
-              _vm._v(" "),
-              _c("option", { attrs: { value: "descripcion" } }, [
-                _vm._v("Descripción")
-              ])
-            ]
-          ),
-          _vm._v(" "),
-          _c("input", {
-            staticClass: "form-control",
-            attrs: {
-              type: "text",
-              id: "texto",
-              name: "texto",
-              placeholder: "Texto a buscar"
-            }
-          }),
-          _vm._v(" "),
-          _c(
-            "button",
-            { staticClass: "btn btn-primary", attrs: { type: "submit" } },
-            [_c("i", { staticClass: "fa fa-search" }), _vm._v(" Buscar")]
-          )
-        ])
-      ])
-    ])
+    return _c(
+      "button",
+      { staticClass: "btn btn-primary", attrs: { type: "submit" } },
+      [_c("i", { staticClass: "fa fa-search" }), _vm._v(" Buscar")]
+    )
   },
   function() {
     var _vm = this
@@ -48453,50 +48589,6 @@ var staticRenderFns = [
         _c("th", [_vm._v("Descripción")]),
         _vm._v(" "),
         _c("th", [_vm._v("Estado")])
-      ])
-    ])
-  },
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("nav", [
-      _c("ul", { staticClass: "pagination" }, [
-        _c("li", { staticClass: "page-item" }, [
-          _c("a", { staticClass: "page-link", attrs: { href: "#" } }, [
-            _vm._v("Ant")
-          ])
-        ]),
-        _vm._v(" "),
-        _c("li", { staticClass: "page-item active" }, [
-          _c("a", { staticClass: "page-link", attrs: { href: "#" } }, [
-            _vm._v("1")
-          ])
-        ]),
-        _vm._v(" "),
-        _c("li", { staticClass: "page-item" }, [
-          _c("a", { staticClass: "page-link", attrs: { href: "#" } }, [
-            _vm._v("2")
-          ])
-        ]),
-        _vm._v(" "),
-        _c("li", { staticClass: "page-item" }, [
-          _c("a", { staticClass: "page-link", attrs: { href: "#" } }, [
-            _vm._v("3")
-          ])
-        ]),
-        _vm._v(" "),
-        _c("li", { staticClass: "page-item" }, [
-          _c("a", { staticClass: "page-link", attrs: { href: "#" } }, [
-            _vm._v("4")
-          ])
-        ]),
-        _vm._v(" "),
-        _c("li", { staticClass: "page-item" }, [
-          _c("a", { staticClass: "page-link", attrs: { href: "#" } }, [
-            _vm._v("Sig")
-          ])
-        ])
       ])
     ])
   }

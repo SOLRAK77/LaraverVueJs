@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+//use Illuminate\Support\Facades\DB;
 /*Importamos el modelo*/
 use App\Categoria;
+
 
 class CategoriaController extends Controller
 {
@@ -15,9 +17,28 @@ class CategoriaController extends Controller
      */
     public function index(Request $request)
     {
-        if (!$request->ajax()) return redirect('/');
-        $categorias = Categoria::all();
-        return $categorias;
+        //if (!$request->ajax()) return redirect('/');
+        ////ejemeplo con query_builder:
+        ////Se importa la clase "use Illuminate\Support\Facades\DB"
+        ////$users = DB::table('users')->paginate(15);
+        //$categorias = DB::table('categorias')->paginate(4);        
+        ////
+        ////ejemeplo con eloquent.ORM:        
+        ////La libreria "use Illuminate\Support\Facades\DB" no se utiliza en eloquent
+        $categorias = Categoria::paginate(4);
+        //$categorias = Categoria::all();        
+        //return $categorias;
+        return [
+            "pagination" => [
+                'total'=> $categorias->total(),
+                'current_page'=> $categorias->currentPage(),
+                'per_page'=> $categorias->perPage(),
+                'last_page'=> $categorias->lastPage(),
+                'from'=> $categorias->firstItem(),
+                'to'=> $categorias->lastItem(),
+                ],
+                'categorias' => $categorias
+        ];
     }
 
 
