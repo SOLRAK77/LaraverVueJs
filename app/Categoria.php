@@ -11,4 +11,8 @@ class Categoria extends Model
 
     //con la propiedad fillable, se indica los campos de la tabla
     protected $fillable = ['nombre','descripcion','condicion'];
+
+    public function articulos(){
+        return $this->hasMany('App\Articulo');
+    }
 }

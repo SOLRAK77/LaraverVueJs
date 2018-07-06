@@ -17,6 +17,7 @@ class CategoriaController extends Controller
      */
     public function index(Request $request)
     {
+        if (!$request->ajax()) return redirect('/');
         $numPaginas=3;
         $buscar = $request->buscar;
         $criterio = $request->criterio;
@@ -110,5 +111,18 @@ class CategoriaController extends Controller
         $categoria = Categoria::findOrFail($request->id);
         $categoria->condicion = '1';
         $categoria->save();
+    }
+
+    /**
+     * Obtiene las categorias estan activas.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function selectCategoria(Request $request){
+        //if (!$request->ajax()) return redirect('/');
+        $categorias = Categoria::where('condicion','=','1')
+        ->select('id','nombre')->orderBy('nombre', 'asc')->get();
+        return ['categorias' => $categorias];
     }
 }
