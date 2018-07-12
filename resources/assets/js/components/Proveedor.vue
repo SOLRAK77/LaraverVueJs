@@ -8,7 +8,7 @@
                 <!-- Ejemplo de tabla Listado -->
                 <div class="card">
                     <div class="card-header">
-                        <i class="fa fa-align-justify"></i> Clientes
+                        <i class="fa fa-align-justify"></i> Proveedores
                         <button type="button" @click="abrirModal('persona','registrar')" class="btn btn-secondary">
                             <i class="icon-plus"></i>&nbsp;Nuevo
                         </button>
@@ -38,6 +38,7 @@
                                     <th>Dirección</th>
                                     <th>Teléfono</th>
                                     <th>Email</th>
+                                    <th>Contacto</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -53,6 +54,7 @@
                                     <td v-text="persona.direccion"></td>
                                     <td v-text="persona.telefono"></td>
                                     <td v-text="persona.email"></td>
+                                    <td v-text="persona.contacto"></td>
                                 </tr>                                
                             </tbody>
                         </table>
@@ -88,7 +90,7 @@
                                 <div class="form-group row">
                                     <label class="col-md-3 form-control-label" for="text-input">Nombre</label>
                                     <div class="col-md-9">
-                                        <input type="text" v-model="nombre" class="form-control" placeholder="Nombre del cliente">                                        
+                                        <input type="text" v-model="nombre" class="form-control" placeholder="Nombre del Cliente">                                        
                                     </div>
                                 </div>
                                 <div class="form-group row">
@@ -125,6 +127,18 @@
                                         <input type="email" v-model="email" class="form-control" placeholder="Ingrese correo">
                                     </div>
                                 </div>
+                                <div class="form-group row">
+                                    <label class="col-md-3 form-control-label" for="text-input">Contacto</label>
+                                    <div class="col-md-9">
+                                        <input type="text" v-model="contacto" class="form-control" placeholder="Ingrese nombre del contacto">
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="col-md-3 form-control-label" for="text-input">Teléfono Contacto</label>
+                                    <div class="col-md-9">
+                                        <input type="text" v-model="telefono_contacto" class="form-control" placeholder="Ingrese teléfono del contacto">
+                                    </div>
+                                </div>
                                 <div v-show="errorPersona" class="form-group row div-error">
                                     <div class="text-center text-error">
                                         <div v-for="error in errorMostrarMsjPersona" :key="error" v-text="error">
@@ -159,6 +173,8 @@
                 direccion : '',
                 telefono : '',
                 email : '',
+                contacto:'',
+                telefono_contacto:'',
                 arrayPersona : [],
                 modal : 0,
                 tituloModal : '',
@@ -210,7 +226,7 @@
         methods : {
             listarPersona (page,buscar,criterio){
                 let me=this;
-                var url= '/cliente?page=' + page + '&buscar=' + buscar + '&criterio=' + criterio;
+                var url= '/proveedor?page=' + page + '&buscar=' + buscar + '&criterio=' + criterio;
                 console.log(url);
                 axios.get(url).then(function (response) {
                     var respuesta= response.data;
@@ -238,13 +254,15 @@
                 
                 let me = this;
 
-                axios.post('/cliente/registrar',{
+                axios.post('/proveedor/registrar',{
                     'nombre' : this.nombre,
                     'tipo_documento' : this.tipo_documento,
                     'num_documento' : this.num_documento,
                     'direccion' : this.direccion,
                     'telefono' : this.telefono,
                     'email' : this.email,
+                    'contacto':this.contacto,
+                    'telefono_contacto':this.telefono_contacto
                 }).then(function (response) {
                     me.cerrarModal();
                     me.listarPersona(1,'','nombre');
@@ -259,14 +277,16 @@
                 
                 let me = this;
 
-                axios.put('/cliente/actualizar',{
+                axios.put('/proveedor/actualizar',{
                     'id': this.persona_id,
                     'nombre' : this.nombre,
                     'tipo_documento' : this.tipo_documento,
                     'num_documento' : this.num_documento,
                     'direccion' : this.direccion,
                     'telefono' : this.telefono,
-                    'email' : this.email
+                    'email' : this.email,
+                    'contacto':this.contacto,
+                    'telefono_contacto':this.telefono_contacto
                 }).then(function (response) {
                     me.cerrarModal();
                     me.listarPersona(1,'','nombre');
@@ -278,7 +298,7 @@
                 this.errorPersona=0;
                 this.errorMostrarMsjPersona =[];
 
-                if (!this.nombre) this.errorMostrarMsjPersona.push("El nombre del cliente no puede estar vacío.");
+                if (!this.nombre) this.errorMostrarMsjPersona.push("El nombre del contacto no puede estar vacío.");
 
                 if (this.errorMostrarMsjPersona.length) this.errorPersona = 1;
 
@@ -288,11 +308,13 @@
                 this.modal=0;
                 this.tituloModal='';
                 this.nombre='';
-                this.tipo_documento='DNI';
+                this.tipo_documento='RUC';
                 this.num_documento='';
                 this.direccion='';
                 this.telefono='';
                 this.email='';
+                this.contacto ='';
+                this.telefono_contacto = '';
                 this.errorPersona = 0;
                 this.errorMostrarMsjPersona =[];
                 
@@ -305,13 +327,15 @@
                             case 'registrar':
                             {
                                 this.modal = 1;
-                                this.tituloModal = 'Registrar Cliente';
+                                this.tituloModal = 'Registrar Contacto';
                                 this.nombre= '';
-                                this.tipo_documento = 'DNI';
+                                this.tipo_documento = 'RUC';
                                 this.num_documento = '',
                                 this.direccion = '';
                                 this.telefono = '';
                                 this.email = '';
+                                this.contacto ='';
+                                this.telefono_contacto = '';
                                 this.tipoAccion = 1;
                                 break;
                             }
@@ -319,7 +343,7 @@
                             {
                                 //console.log(data);
                                 this.modal=1;
-                                this.tituloModal='Actualizar Cliente';
+                                this.tituloModal='Actualizar Contacto';
                                 this.tipoAccion=2;
                                 this.persona_id=data['id'];
                                 this.nombre = data['nombre'];
@@ -328,6 +352,8 @@
                                 this.direccion = data['direccion'];
                                 this.telefono = data['telefono'];
                                 this.email = data['email'];
+                                this.contacto = data['contacto'];
+                                this.telefono_contacto = data['telefono_contacto'];
                                 
                                 break;
                             }

@@ -234,7 +234,7 @@
         methods : {
             listarArticulo (page,buscar,criterio){
                 let me=this;
-                var url= '/articulo?page=' + page + '&buscar=' + buscar + '&criterio=' + criterio;
+                var url= '/articulo?page=' + page + '&buscar=' + buscar + '&criterio=' + criterio;                
                 console.log(url);
                 axios.get(url).then(function (response) {
                     var respuesta= response.data;

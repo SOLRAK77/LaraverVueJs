@@ -17,7 +17,6 @@ class ClienteController extends Controller
         $buscar = $request->buscar;
         $criterio = $request->criterio;
 
-        //if (!$request->ajax()) return redirect('/');     
         if($buscar==''){
             $personas = Persona::orderBy('id','desc')->paginate($numPaginas);
         }else{
